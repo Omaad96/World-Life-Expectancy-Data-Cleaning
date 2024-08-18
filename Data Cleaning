@@ -1,0 +1,113 @@
+# World life expectancy Project (data cleaning)
+
+SELECT *
+FROM world_life_expectancy
+;
+
+# Find duplicates 
+
+SELECT Country, Year, CONCAT(Country, Year), COUNT(CONCAT(Country, Year))
+FROM world_life_expectancy
+GROUP BY Country, Year, CONCAT(Country, Year)
+HAVING COUNT(CONCAT(Country, Year)) > 1
+;
+
+SELECT *
+FROM(
+	SELECT Row_ID, 
+		CONCAT(Country, Year), 
+		row_number() OVER(PARTITION BY CONCAT(Country, Year) ORDER BY CONCAT(Country, Year)) AS row_num
+	FROM world_life_expectancy
+    ) AS row_table
+    WHERE row_num > 1 
+    ;
+    
+    DELETE FROM world_life_expectancy
+		WHERE 
+			Row_ID IN (
+            SELECT Row_ID
+FROM(
+	SELECT Row_ID, 
+		CONCAT(Country, Year), 
+		row_number() OVER(PARTITION BY CONCAT(Country, Year) ORDER BY CONCAT(Country, Year)) AS row_num
+	FROM world_life_expectancy
+    ) AS row_table
+    WHERE row_num > 1
+    )
+    ;
+    
+    SELECT *
+FROM world_life_expectancy
+WHERE status = ''
+;
+
+  SELECT DISTINCT(status)
+FROM world_life_expectancy
+WHERE status <> ''
+;
+
+SELECT DISTINCT(Country)
+FROM world_life_expectancy
+WHERE Status = 'Developing'
+;
+
+
+UPDATE world_life_expectancy T1
+JOIN world_life_expectancy T2
+	ON T1.Country = T2.Country
+SET T1.Status = 'Developing'
+WHERE T1.Status = ''
+AND T2.Status <> ''
+AND T2.Status = 'Developing'
+;
+
+SELECT *
+FROM world_life_expectancy
+WHERE Country = 'United States of America'
+;
+
+UPDATE world_life_expectancy T1
+JOIN world_life_expectancy T2
+	ON T1.Country = T2.Country 
+SET T1.Status = 'Developed'
+WHERE T1.Status = ''
+AND T2.Status <> ''
+AND T2.Status = 'Developed'
+;
+     
+     
+SELECT COUNTRY, Year, `Life expectancy`
+FROM world_life_expectancy
+WHERE `Life expectacny` = ''
+;
+
+SELECT T1.COUNTRY, T1.Year, T1.`Life expectancy`, 
+T2.COUNTRY, T2.Year, T2.`Life expectancy`,
+T3.COUNTRY, T3.Year, T3.`Life expectancy`,
+	ROUND((T2.`Life expectancy` + T3.`Life expectancy`)/2,1)
+FROM world_life_expectancy T1
+JOIN world_life_expectancy T2
+	ON T1.Country = T2.Country 
+    AND T1.Year = T2.Year - 1
+JOIN world_life_expectancy T3
+	ON T1.Country = T3.Country 
+    AND T1.Year = T3.Year + 1
+WHERE T1.`life expectancy` = ''
+;
+
+UPDATE world_life_expectancy T1
+JOIN world_life_expectancy T2
+	ON T1.Country = T2.Country 
+    AND T1.Year = T2.Year - 1
+JOIN world_life_expectancy T3
+	ON T1.Country = T3.Country 
+    AND T1.Year = T3.Year + 1
+SET T1.`Life expectancy` = ROUND((T2.`Life expectancy` + T3.`Life expectancy`)/2,1)
+WHERE T1.`Life expectancy` = ''
+;
+
+
+SELECT *
+FROM world_life_expectancy
+;
+
